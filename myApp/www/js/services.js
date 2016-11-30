@@ -11,10 +11,10 @@ angular.module('starter.services', [])
         };
     })
 
-/*
-    .service('SurveyModel', function ($http, Backand) {
+
+    .service('SurveysModel', function ($http, Backand) {
         var service = this,
-            baseUrl = '/1/users/',
+            baseUrl = '/1/objects/',
             objectName = 'surveys/';
 
         function getUrl() {
@@ -46,7 +46,6 @@ angular.module('starter.services', [])
         };
     })
 
-*/
     .service('LoginService', function (Backand) {
         var service = this;
         service.signin = function (email, password, appName) {

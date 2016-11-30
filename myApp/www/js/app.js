@@ -77,7 +77,7 @@ angular.module('starter', ['ionic', 'backand', 'starter.controllers', 'starter.s
     views: {
       'tab-survey': {
         templateUrl: 'templates/tab-survey.html',
-        controller: 'SurveyCtrl'
+        controller: 'SurveyCtrl as vm'
       }
     }
   })
