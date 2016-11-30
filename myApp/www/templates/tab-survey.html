@@ -1,8 +1,64 @@
+<!--
 <ion-view view-title="Survey">
      <ion-content class="padding has-header">
         <div class="bar bar-header">
-            
+            <span><button class="button button-positive">Refresh</button></span>
+            <span><i class='icon ion-plus-round new-item'> Add Item</i></span>
         </div>
-
+        <div class="bar bar-subheader">
+            <div class="list card">
+                <div class="item item-icon-right item-icon-left">
+                    <i class="ion-compose icon"></i>
+                    <h2 class="text-center"></h2>
+                    <i class="icon ion-close-round"></i>
+                </div>
+                <div class="item item-body">
+                </div>
+            </div>
+        </div>
+        
     </ion-content>
+</ion-view>
+-->
+
+<!--
+<ion-header-bar class="bar-positive">
+  <div class="buttons">
+    <h1 class="title">Ionic List</h1>
+  </div>
+</ion-header-bar>
+<ion-content class="padding has-header" = ng-controller="SurveyCtrl">
+ <ion-list>
+  <ion-item>
+   Body Weight
+  </ion-item>
+  <ion-item>
+   Hours of sleep
+  </ion-item>
+  <ion-item>
+   Stress level
+  </ion-item>
+ </ion-list>
+</ion-content>
+-->
+
+<ion-view view-title="Survey">
+  <div class="buttons">
+    <h1 class="title">Ionic List</h1>
+  </div>
+  
+  <ion-content ng-controller="SurveyCtrl">
+
+ <ion-list>
+  <ion-item>
+   Body Weight
+  </ion-item>
+  <ion-item>
+   Hours of Sleep
+  </ion-item>
+  <ion-item>
+   Stress level
+  </ion-item>
+ </ion-list>
+</ion-content>
 </ion-view>
