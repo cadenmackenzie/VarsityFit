@@ -8,10 +8,8 @@ angular.module('starter.controllers', ['ionic'])
     // var newPassword2;
     
     function signin() {
-
       LoginService.signin(login.email, login.password, appName)
         .then (function() {
-          console.log("attempted to login");
           $rootScope.$broadcast("authorized");
           $state.go("tab.workout");
           
@@ -82,6 +80,7 @@ angular.module('starter.controllers', ['ionic'])
       $scope.currentUser = null;
     }
   };
+  
 
 
 
@@ -273,13 +272,14 @@ angular.module('starter.controllers', ['ionic'])
   
   $scope.exercise = {};
   $scope.exerciseInfo = exerciseData.getExercise();
+  console.log("exInfo", JSON.stringify($scope.exerciseInfo));
  // console.log($scope.exerciseInfo);
   var exercise_id = $scope.exerciseInfo.id;
   
   
   $scope.submitExercise = function(exercise) {
     exerciseData.updateExercise(exercise);
-    console.log("Retrieving form from service", exerciseData.getExercise());
+    console.log("Retrieving form from service EC", JSON.stringify(exerciseData.getExercise()));
     $state.go('tab.exercisedetails');
     
   };
@@ -294,22 +294,21 @@ angular.module('starter.controllers', ['ionic'])
       $scope.currentUser = null;
     }
   };
-  
-
 
   function getAll(){
     ExerciseModel.all()
       .then(function (result) {
             ec.data = result.data.data;
+            console.log("ec_all", JSON.sringify(ec.data));
             
       });
-  
   }
 
    $scope.getExerciseName = function() {
      ExerciseModel.all()
        .then(function (result) {
          ec.exercise_names = result.data.data;
+         console.log("ec", JSON.stringify(ec.exercise_names));
          for(var object in ec.exercise_names) {
            var current = ec.exercise_names[object];
            var exercise_id = current.id;
@@ -376,6 +375,7 @@ angular.module('starter.controllers', ['ionic'])
   });
   
   initCreateForm();
+  console.log("finish init");
   getAll();
   // $scope.getExerciseDetails();
   $scope.getExerciseName();
@@ -400,7 +400,7 @@ angular.module('starter.controllers', ['ionic'])
   
   $scope.submitForm = function(workout) {
     formData.updateForm(workout);
-    console.log("Retrieving form from service", formData.getForm());
+    console.log("Retrieving form from service", JSON.stringify(formData.getForm()));
     $state.go('tab.workoutdetails');
     
   };
@@ -437,11 +437,9 @@ angular.module('starter.controllers', ['ionic'])
                 sportDetail.push(sports_temp[object]);
               }
             }
-          
           wo.sports = sportDetail;
-          console.log("broken", JSON.stringify(wo.sports));
           var p = Promise.resolve(wo.sports);
-          p.then(function(sportDetail) {
+          p.then(function() {
           $scope.getWorkoutDetails();
           });
       });
