@@ -166,6 +166,16 @@ angular.module('starter', ['ionic', 'backand', 'starter.controllers', 'starter.s
     }
   })
   
+    .state('tab.sets', {
+    url: '/sets',
+    views: {
+      'tab-sets': {
+        templateUrl: 'templates/tab-sets.html',
+        controller: 'WorkoutCtrl as wo'
+      }
+    }
+  })
+  
   .state('tab.surveys', {
     url: '/surveys', 
     views: {

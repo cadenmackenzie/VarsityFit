@@ -67,6 +67,7 @@ angular.module('starter.services', [])
         var service = this,
             baseUrl = '/1/objects/',
             objectName = 'workouts/';
+            console.log("Backand.get", JSON.stringify(Backand.getApiUrl()));
 
         function getUrl() {
             return Backand.getApiUrl() + baseUrl + objectName;
@@ -86,6 +87,18 @@ angular.module('starter.services', [])
 
         service.create = function (object) {
             return $http.post(getUrl(), object);
+        };
+        
+        service.getSet = function (id){
+            return $http ({
+              method: 'GET',
+              url: Backand.getApiUrl() + baseUrl + objectName,
+              params: {
+                  pageSize: '20',
+                  pageNumber: '1',
+                  filter: [{"fieldName": "set", "operator": "in", "value": id}]
+              }
+            });
         };
     })
 
@@ -141,6 +154,44 @@ angular.module('starter.services', [])
         };
     })
     
+    .service('SetsModel', function ($http, Backand) {
+    var service = this,
+        baseUrl = '/1/objects/',
+        objectName = 'sets/';
+
+        function getUrl() {
+            return Backand.getApiUrl() + baseUrl + objectName;
+        }
+    
+        function getUrlForId(id) {
+            return getUrl() + id;
+        }
+    
+        service.all = function () {
+            return $http.get(getUrl());
+        };
+    
+        service.fetch = function (id) {
+            return $http.get(getUrlForId(id));
+        };
+    
+        service.create = function (object) {
+            return $http.post(getUrl(), object);
+        };
+        
+         service.getSet = function (id){
+            return $http ({
+              method: 'GET',
+              url: Backand.getApiUrl() + baseUrl + objectName,
+              params: {
+                  pageSize: '20',
+                  pageNumber: '1',
+                  filter: [{"fieldName": "sport", "operator": "in", "value": id}]
+              }
+            });
+        };
+    })
+
     .service('WorkoutsExercisesModel', function ($http, Backand) {
         var service = this,
             baseUrl = '/1/objects/',
@@ -167,31 +218,32 @@ angular.module('starter.services', [])
         };
     })
     
-    // .service('WorkoutModel', function ($http, Backand) {
-    //     var service = this,
-    //         baseUrl = '/1/objects/',
-    //         objectName = 'workouts/';
+    .service('WorkoutSetModel', function ($http, Backand) {
+        var service = this,
+            baseUrl = '/1/objects/',
+            objectName = 'se/';
 
-    //     function getUrl() {
-    //         return Backand.getApiUrl() + baseUrl + objectName;
-    //     }
+        function getUrl() {
+            return Backand.getApiUrl() + baseUrl + objectName;
+        }
 
-    //     function getUrlForId(id) {
-    //         return getUrl() + id;
-    //     }
+        function getUrlForId(id) {
+            return getUrl() + id;
+        }
 
-    //     service.all = function () {
-    //         return $http.get(getUrl());
-    //     };
+        service.all = function () {
+            return $http.get(getUrl());
+        };
 
-    //     service.fetch = function (id) {
-    //         return $http.get(getUrlForId(id));
-    //     };
+        service.fetch = function (id) {
+            return $http.get(getUrlForId(id));
+        };
 
-    //     service.create = function (object) {
-    //         return $http.post(getUrl(), object);
-    //     };
-    // })    
+        service.create = function (object) {
+            return $http.post(getUrl(), object);
+        };
+        
+    })    
 
     .service('ExerciseModel', function ($http, Backand) {
         var service = this,

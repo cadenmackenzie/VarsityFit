@@ -11,7 +11,7 @@ angular.module('starter.controllers', ['ionic'])
       LoginService.signin(login.email, login.password, appName)
         .then (function() {
           $rootScope.$broadcast("authorized");
-          $state.go("tab.workout");
+          $state.go("tab.sets");
           
         }, function(error){
           $ionicPopup.alert({
@@ -299,8 +299,6 @@ angular.module('starter.controllers', ['ionic'])
     ExerciseModel.all()
       .then(function (result) {
             ec.data = result.data.data;
-            console.log("ec_all", JSON.sringify(ec.data));
-            
       });
   }
 
@@ -308,12 +306,12 @@ angular.module('starter.controllers', ['ionic'])
      ExerciseModel.all()
        .then(function (result) {
          ec.exercise_names = result.data.data;
-         console.log("ec", JSON.stringify(ec.exercise_names));
          for(var object in ec.exercise_names) {
            var current = ec.exercise_names[object];
            var exercise_id = current.id;
+                    //console.log("ec", JSON.stringify(ec.exercise_names[object]));
              for(var exercise in exercise_ids) {
-              if(exercise_id == exercise_ids[exercise]) {
+              if(exercise_id == parseInt(exercise)) {
                 exercise_names.push(ec.exercise_names[object]);
               }
             }
@@ -384,7 +382,7 @@ angular.module('starter.controllers', ['ionic'])
 
 })
 
-.controller('WorkoutCtrl', function($scope, $rootScope, Backand, $state, UsersSportsModel, SportsWorkoutsModel, WorkoutModel, WorkoutsExercisesModel, formData) {
+.controller('WorkoutCtrl', function($scope, $rootScope, Backand, $state, UsersSportsModel, SportsWorkoutsModel, WorkoutModel, WorkoutsExercisesModel, SetsModel, formData) {
   var wo = this;
   var userDetail;
   var sportDetail = [];
@@ -393,6 +391,7 @@ angular.module('starter.controllers', ['ionic'])
   var workout_names = [];
   //var exercise_names = [];
   var data2 = [];
+  
 
 
   $scope.workout = {};
@@ -438,14 +437,19 @@ angular.module('starter.controllers', ['ionic'])
               }
             }
           wo.sports = sportDetail;
+          console.log("sports", JSON.stringify(wo.sports));
           var p = Promise.resolve(wo.sports);
           p.then(function() {
+          $scope.getSetDetails
           $scope.getWorkoutDetails();
           });
       });
   
   };
   
+  $scope.getSetDetails = function(){
+    console.log(JSON.stringify(SetsModel.getSet(sportDetail.sport)));
+  }
   $scope.getWorkoutDetails = function() {
     SportsWorkoutsModel.all()
       .then(function (result) {
@@ -473,6 +477,11 @@ angular.module('starter.controllers', ['ionic'])
           for(var object in wo.workout_names) {
             var current = wo.workout_names[object];
             var workout_id = current.id;
+            var wm = WorkoutModel.getSet('1');
+            wm.then(function(success){
+            //console.log('hi', JSON.stringify(success.data.data));
+            });
+  
               for(var workout in workoutDetail) {
                 if(workout_id == workoutDetail[workout].workout) {
                   workout_names.push(wo.workout_names[object]);
