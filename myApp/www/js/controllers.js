@@ -113,9 +113,9 @@ angular.module('starter.controllers', ['ionic'])
   function create(object){
     PreSurveysModel.create(object)
       .then(function (result) {
+        $rootScope.presurvey = object;
         cancelCreate();
         getAll();
-        
         $state.go("tab.workoutdetails");
       });
   }
@@ -163,11 +163,11 @@ angular.module('starter.controllers', ['ionic'])
   
 })
 
-.controller('PostSurveyCtrl', function($rootScope, $scope, Backand, $state, PostSurveysModel) {
+.controller('PostSurveyCtrl', function($rootScope, $scope, Backand, $state, PostSurveysModel, CompletedModel) {
   var vm = this;
   var userDetail;
   var data2 = [];
-  
+  console.log("transfersurvey", JSON.stringify($rootScope.presurvey));
 
   $scope.getUserDetails = function() {
     var user = Backand.getUserDetails();
@@ -203,6 +203,17 @@ angular.module('starter.controllers', ['ionic'])
   
   
   function create(object){
+    console.log("postsurveyobj", JSON.stringify(object));
+    var completed_object = JSON.parse(JSON.stringify(object));
+    completed_object.bodyWeightIn = $rootScope.presurvey.bodyWeightIn;
+    completed_object.hoursSleep = $rootScope.presurvey.hoursSleep;
+    completed_object.sleepQuality = $rootScope.presurvey.sleepQuality;
+    completed_object.stressLevel = $rootScope.presurvey.stressLevel;
+    completed_object.muscleSoreness = $rootScope.presurvey.muscleSoreness;
+    completed_object.fatigueLevelPre = $rootScope.presurvey.fatigueLevelPre;
+    CompletedModel.create(completed_object);
+    console.log("completeobj", JSON.stringify(completed_object));
+    console.log("postsurveyobj", JSON.stringify(object));
     PostSurveysModel.create(object)
       .then(function (result) {
         cancelCreate();
@@ -320,16 +331,14 @@ angular.module('starter.controllers', ['ionic'])
       });
   };
 
-
-
-  function create(object){
-    CompletedModel.create(object)
-      .then(function (result) {
-        cancelCreate();
-        
-        $state.go("tab.workoutdetails");
-      });
-  }
+  // function create(object){
+  //   console.log("complete in ec");
+  //   CompletedModel.create(object)
+  //     .then(function (result) {
+  //       cancelCreate();
+  //       $state.go("tab.workoutdetails");
+  //     });
+  // }
   
   function initCreateForm() {
     $scope.getUserDetails();
@@ -363,7 +372,7 @@ angular.module('starter.controllers', ['ionic'])
   ec.isEditing = false;
   ec.isCreating = false;
   ec.getAll = getAll;
-  ec.create = create;
+  // ec.create = create;
   ec.setEdited = setEdited;
   ec.isCurrent = isCurrent;
   ec.cancelEditing = cancelEditing;
@@ -395,7 +404,10 @@ angular.module('starter.controllers', ['ionic'])
 
 
   $scope.workout = {};
-  
+  if (typeof $rootScope.presurvey == undefined){
+    $rootScope.presurvey = {};
+  }
+  console.log("workoutsurvey", JSON.stringify($rootScope.presurvey));
   
   $scope.submitForm = function(workout) {
     formData.updateForm(workout);
