@@ -259,9 +259,12 @@ angular.module('starter.services', [])
         }
 
         service.all = function () {
-            return $http.get(getUrl());
+            return $http.get(getUrl(), {
+                params: {
+                    pageSize:'200'
+                }
+            });
         };
-
         service.fetch = function (id) {
             return $http.get(getUrlForId(id));
         };

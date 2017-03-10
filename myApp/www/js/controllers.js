@@ -1,5 +1,25 @@
 angular.module('starter.controllers', ['ionic'])
 
+.filter('exerciseFilter', function(){
+  return function(exercise, searchText){
+    
+    var filteredExercises = [];
+    searchText = searchText || '' ;
+    
+    if (searchText.val == ''){
+      return exercise;
+    }
+    searchText.val = searchText.val.toLowerCase();
+    for (var obj in exercise){
+      var an_exercise = exercise[obj];
+      if ((an_exercise.name.toLowerCase().includes(searchText.val))){
+        filteredExercises.push(an_exercise);
+      }
+    }
+    return filteredExercises;
+  };
+})
+
 .controller('LoginCtrl', function($rootScope, $scope, $state, $ionicPopup, LoginService, Backand, $http) {
     
     var login = this;
@@ -102,10 +122,8 @@ angular.module('starter.controllers', ['ionic'])
             if (userDetail == current.user) {
               data2.push(vm.allData[object]);
             }
-            
         }
         vm.data = data2;
-
       });
   }
   
@@ -267,11 +285,15 @@ angular.module('starter.controllers', ['ionic'])
   getSelected();
 })
 
-
 .controller('ExerciseCtrl', function($scope, $rootScope, Backand, $state, WorkoutsExercisesModel, ExerciseModel, CompletedModel, formData, exerciseData) {
   var ec = this;
   var userDetail;
   
+  if(!angular.isDefined($scope.searchText)){
+    console.log("init");
+    $scope.searchText = {};
+    $scope.searchText.val='';  
+  } 
   
   
   $scope.workout = formData.getForm();
@@ -280,7 +302,7 @@ angular.module('starter.controllers', ['ionic'])
   var exercise_names = [];
   
   
-  
+  ec.links = [];
   $scope.exercise = {};
   $scope.exerciseInfo = exerciseData.getExercise();
   console.log("exInfo", JSON.stringify($scope.exerciseInfo));
@@ -307,10 +329,25 @@ angular.module('starter.controllers', ['ionic'])
   };
 
   function getAll(){
+    ec.data = [];
     ExerciseModel.all()
       .then(function (result) {
-            ec.data = result.data.data;
-      });
+        result.data.data.forEach(function(ex){
+          ec.data.push(ex);
+        });
+        console.log("ecdata1", JSON.stringify(ec.data));
+        
+        ec.data.forEach(function(ex){
+          console.log("ex.data stuff", JSON.stringify(ex));
+          console.log("type", angular.isDefined( ex.url), JSON.stringify(ex.url));
+          if (ex.url != null){
+            console.log("its true");
+            ec.links.push(ex);
+          }
+        });
+    });
+      
+     
   }
 
    $scope.getExerciseName = function() {
@@ -328,6 +365,7 @@ angular.module('starter.controllers', ['ionic'])
             }
         }
         ec.exercises = exercise_names;
+        console.log("ec.ex", JSON.stringify(ec.exercises));
       });
   };
 
@@ -416,9 +454,6 @@ angular.module('starter.controllers', ['ionic'])
     
   };
 
-
-
-
   $scope.getUserDetails = function() {
     var user = Backand.getUserDetails();
     if(user.$$state.value !== null){
@@ -435,8 +470,6 @@ angular.module('starter.controllers', ['ionic'])
           });
   };
   
-  
-  
   $scope.getSportDetails = function(){
     UsersSportsModel.all()
       .then(function (result) {
@@ -452,7 +485,7 @@ angular.module('starter.controllers', ['ionic'])
           console.log("sports", JSON.stringify(wo.sports));
           var p = Promise.resolve(wo.sports);
           p.then(function() {
-          $scope.getSetDetails
+          $scope.getSetDetails();
           $scope.getWorkoutDetails();
           });
       });
