@@ -85,7 +85,7 @@ angular.module('starter.controllers', ['ionic'])
 
 }) 
 
-.controller('PreSurveyCtrl', function($rootScope, $scope, $state, PreSurveysModel, Backand) {
+.controller('PreSurveyCtrl', function($rootScope, $scope, $state, CompletedModel, PreSurveysModel, Backand) {
   var vm = this;
   var userDetail;
   var data2 = [];
@@ -129,11 +129,13 @@ angular.module('starter.controllers', ['ionic'])
   
   
   function create(object){
-    PreSurveysModel.create(object)
+    CompletedModel.create(object)
       .then(function (result) {
         $rootScope.presurvey = object;
         cancelCreate();
         getAll();
+        console.log("metastuff", JSON.stringify(result.data.__metadata));
+        $rootScope.surveyID = result.data.__metadata.id;
         $state.go("tab.workoutdetails");
       });
   }
@@ -185,7 +187,6 @@ angular.module('starter.controllers', ['ionic'])
   var vm = this;
   var userDetail;
   var data2 = [];
-  console.log("transfersurvey", JSON.stringify($rootScope.presurvey));
 
   $scope.getUserDetails = function() {
     var user = Backand.getUserDetails();
@@ -221,7 +222,6 @@ angular.module('starter.controllers', ['ionic'])
   
   
   function create(object){
-    console.log("postsurveyobj", JSON.stringify(object));
     var completed_object = JSON.parse(JSON.stringify(object));
     completed_object.bodyWeightIn = $rootScope.presurvey.bodyWeightIn;
     completed_object.hoursSleep = $rootScope.presurvey.hoursSleep;
@@ -229,9 +229,8 @@ angular.module('starter.controllers', ['ionic'])
     completed_object.stressLevel = $rootScope.presurvey.stressLevel;
     completed_object.muscleSoreness = $rootScope.presurvey.muscleSoreness;
     completed_object.fatigueLevelPre = $rootScope.presurvey.fatigueLevelPre;
-    CompletedModel.create(completed_object);
-    console.log("completeobj", JSON.stringify(completed_object));
-    console.log("postsurveyobj", JSON.stringify(object));
+    completed_object.id = $rootScope.surveyID;
+    CompletedModel.update(completed_object);
     PostSurveysModel.create(object)
       .then(function (result) {
         cancelCreate();
@@ -285,14 +284,13 @@ angular.module('starter.controllers', ['ionic'])
   getSelected();
 })
 
-.controller('ExerciseCtrl', function($scope, $rootScope, Backand, $state, WorkoutsExercisesModel, ExerciseModel, CompletedModel, formData, exerciseData) {
+.controller('ExerciseCtrl', function($scope, $ionicHistory, $rootScope, ExerciseSurveyService, Backand, $state, WorkoutsExercisesModel, ExerciseModel, CompletedModel, formData, exerciseData) {
   var ec = this;
   var userDetail;
   
   if(!angular.isDefined($scope.searchText)){
-    console.log("init");
     $scope.searchText = {};
-    $scope.searchText.val='';  
+    $scope.searchText.val='';
   } 
   
   
@@ -305,10 +303,13 @@ angular.module('starter.controllers', ['ionic'])
   ec.links = [];
   $scope.exercise = {};
   $scope.exerciseInfo = exerciseData.getExercise();
-  console.log("exInfo", JSON.stringify($scope.exerciseInfo));
- // console.log($scope.exerciseInfo);
   var exercise_id = $scope.exerciseInfo.id;
   
+  $scope.numsets = $scope.exerciseInfo.sets;
+  $scope.getNumber = function(num) {
+    return new Array(num);   
+  };
+  $scope.weightArray = [];
   
   $scope.submitExercise = function(exercise) {
     exerciseData.updateExercise(exercise);
@@ -335,19 +336,13 @@ angular.module('starter.controllers', ['ionic'])
         result.data.data.forEach(function(ex){
           ec.data.push(ex);
         });
-        console.log("ecdata1", JSON.stringify(ec.data));
         
         ec.data.forEach(function(ex){
-          console.log("ex.data stuff", JSON.stringify(ex));
-          console.log("type", angular.isDefined( ex.url), JSON.stringify(ex.url));
           if (ex.url != null){
-            console.log("its true");
             ec.links.push(ex);
           }
         });
     });
-      
-     
   }
 
    $scope.getExerciseName = function() {
@@ -357,7 +352,6 @@ angular.module('starter.controllers', ['ionic'])
          for(var object in ec.exercise_names) {
            var current = ec.exercise_names[object];
            var exercise_id = current.id;
-                    //console.log("ec", JSON.stringify(ec.exercise_names[object]));
              for(var exercise in exercise_ids) {
               if(exercise_id == parseInt(exercise)) {
                 exercise_names.push(ec.exercise_names[object]);
@@ -365,25 +359,26 @@ angular.module('starter.controllers', ['ionic'])
             }
         }
         ec.exercises = exercise_names;
-        console.log("ec.ex", JSON.stringify(ec.exercises));
       });
   };
 
-  // function create(object){
-  //   console.log("complete in ec");
-  //   CompletedModel.create(object)
-  //     .then(function (result) {
-  //       cancelCreate();
-  //       $state.go("tab.workoutdetails");
-  //     });
-  // }
+  function create(object){
+    console.log("create new weights", JSON.stringify(object));
+    var exercise_survey = {};
+    exercise_survey.exercise = exercise_id;
+    exercise_survey.completed_survey = parseInt($rootScope.surveyID);
+    console.log("exercise_survey", JSON.stringify(exercise_survey));
+    exercise_survey.weights = object.weight.toString();
+    ExerciseSurveyService.update(exercise_survey);
+    $ionicHistory.goBack();
+  }
   
   function initCreateForm() {
     $scope.getUserDetails();
     console.log("WORKOUT " + workout_id);
     console.log("EXERCISE " + exercise_id);
     console.log("USER " + userDetail);
-    ec.newObject = {workout: workout_id, user: userDetail, exercise: exercise_id, weight: ''}; 
+    ec.newObject = {workout: workout_id, user: userDetail, exercise: exercise_id, weight: []}; 
   }
   
   function setEdited(object) {
@@ -415,12 +410,12 @@ angular.module('starter.controllers', ['ionic'])
   ec.isCurrent = isCurrent;
   ec.cancelEditing = cancelEditing;
   ec.cancelCreate = cancelCreate;
+  ec.create = create;
   $rootScope.$on("authorized", function() {
     getAll();
   });
   
   initCreateForm();
-  console.log("finish init");
   getAll();
   // $scope.getExerciseDetails();
   $scope.getExerciseName();
@@ -439,13 +434,10 @@ angular.module('starter.controllers', ['ionic'])
   //var exercise_names = [];
   var data2 = [];
   
-
-
   $scope.workout = {};
   if (typeof $rootScope.presurvey == undefined){
     $rootScope.presurvey = {};
   }
-  console.log("workoutsurvey", JSON.stringify($rootScope.presurvey));
   
   $scope.submitForm = function(workout) {
     formData.updateForm(workout);
@@ -482,7 +474,6 @@ angular.module('starter.controllers', ['ionic'])
               }
             }
           wo.sports = sportDetail;
-          console.log("sports", JSON.stringify(wo.sports));
           var p = Promise.resolve(wo.sports);
           p.then(function() {
           $scope.getSetDetails();
@@ -494,7 +485,8 @@ angular.module('starter.controllers', ['ionic'])
   
   $scope.getSetDetails = function(){
     console.log(JSON.stringify(SetsModel.getSet(sportDetail.sport)));
-  }
+  };
+  
   $scope.getWorkoutDetails = function() {
     SportsWorkoutsModel.all()
       .then(function (result) {
@@ -524,7 +516,6 @@ angular.module('starter.controllers', ['ionic'])
             var workout_id = current.id;
             var wm = WorkoutModel.getSet('1');
             wm.then(function(success){
-            //console.log('hi', JSON.stringify(success.data.data));
             });
   
               for(var workout in workoutDetail) {

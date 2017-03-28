@@ -274,6 +274,20 @@ angular.module('starter.services', [])
         };
     })
     
+    .service('ExerciseSurveyService', function ($http, Backand){
+        var service = this,
+            baseUrl = '/1/objects/',
+            objectName = 'exercise_survey/';
+        
+        function getUrl(){
+            return Backand.getApiUrl() + baseUrl + objectName;
+        }
+        
+        service.update = function(exercise_survey){
+            return $http.post(getUrl(), exercise_survey);
+        };
+    })
+    
     .service('CompletedModel', function ($http, Backand) {
         var service = this,
             baseUrl = '/1/objects/',
@@ -298,6 +312,10 @@ angular.module('starter.services', [])
         service.create = function (object) {
             return $http.post(getUrl(), object);
         };
+        
+        service.update = function (object) {
+            return $http.put(getUrl() + '/' + object.id.toString() + '/', object);
+        }
     })
     
     .service('formData', function() {

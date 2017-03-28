@@ -25,15 +25,17 @@
         <div class="item item-divider">
           Weight
         </div>
-        
+        <!--
+        ng-model="ec.newObject.weight"weightArray[$index + 1]
+        -->
 
         <div>
           <form class="create-form" role="form"
               ng-submit="ec.create(ec.newObject)" novalidate>
-                        <label class="item item-input item-stacked-label">
+                        <label class="item item-input item-stacked-label" ng-repeat="weight in getNumber(numsets) track by $index">
                             <input type="number" class="form-control"
-                                   ng-model="ec.newObject.weight"
-                                   placeholder="Enter Weight">
+                                   ng-model="ec.newObject.weight[$index]"
+                                   placeholder="Enter Weight for Set {{ $index + 1 }}" >
                         </label>
                         
                     <br></br>
