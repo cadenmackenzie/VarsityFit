@@ -286,6 +286,18 @@ angular.module('starter.services', [])
         service.update = function(exercise_survey){
             return $http.post(getUrl(), exercise_survey);
         };
+        
+        service.get = function(survey){
+            return $http ({
+              method: 'GET',
+              url: Backand.getApiUrl() + baseUrl + objectName,
+              params: {
+                  pageSize: '20',
+                  pageNumber: '1',
+                  filter: [{"fieldName": "completed_survey", "operator": "in", "value": survey}]
+              }
+            });
+        }
     })
     
     .service('CompletedModel', function ($http, Backand) {

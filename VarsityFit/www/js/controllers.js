@@ -85,7 +85,7 @@ angular.module('starter.controllers', ['ionic'])
 
 }) 
 
-.controller('PreSurveyCtrl', function($rootScope, $scope, $state, CompletedModel, PreSurveysModel, Backand) {
+.controller('PreSurveyCtrl', function($rootScope, $scope, $state, $ionicPopup, CompletedModel, PreSurveysModel, Backand) {
   var vm = this;
   var userDetail;
   var data2 = [];
@@ -101,9 +101,6 @@ angular.module('starter.controllers', ['ionic'])
     }
   };
   
-
-
-
   function getAll(){
     PreSurveysModel.all()
       .then(function (result) {
@@ -129,15 +126,28 @@ angular.module('starter.controllers', ['ionic'])
   
   
   function create(object){
-    CompletedModel.create(object)
+    console.log("new", JSON.stringify(object), object.bodyWeightIn == null);
+    if (object.date == 'undefined' || object.bodyWeightIn == 'null' 
+    || object.sleepQuality.length == 0 || object.muscleSoreness.length == 0 
+    || object.stressLevel.length == 0 || object.fatigueLevelPre.length == 0){
+      
+       $ionicPopup.alert({
+          title: "Incomplete Survey",
+          template: "Please fill in all parts of the survey before submitting."
+        });
+    }
+    
+    else {
+     CompletedModel.create(object)
       .then(function (result) {
         $rootScope.presurvey = object;
         cancelCreate();
         getAll();
-        console.log("metastuff", JSON.stringify(result.data.__metadata));
+        console.log("metastuff", JSON.stringify(result.data));
         $rootScope.surveyID = result.data.__metadata.id;
         $state.go("tab.workoutdetails");
-      });
+      }); 
+    }
   }
   function initCreateForm() {
     $scope.getUserDetails();
@@ -223,6 +233,12 @@ angular.module('starter.controllers', ['ionic'])
   
   function create(object){
     var completed_object = JSON.parse(JSON.stringify(object));
+    
+    $ionicPopup.alert({
+          title: "Incomplete Survey",
+          template: "Please fill in all parts of the survey before submitting."
+    });
+        
     completed_object.bodyWeightIn = $rootScope.presurvey.bodyWeightIn;
     completed_object.hoursSleep = $rootScope.presurvey.hoursSleep;
     completed_object.sleepQuality = $rootScope.presurvey.sleepQuality;
@@ -284,7 +300,7 @@ angular.module('starter.controllers', ['ionic'])
   getSelected();
 })
 
-.controller('ExerciseCtrl', function($scope, $ionicHistory, $rootScope, ExerciseSurveyService, Backand, $state, WorkoutsExercisesModel, ExerciseModel, CompletedModel, formData, exerciseData) {
+.controller('ExerciseCtrl', function($scope, $ionicHistory, $ionicPopup, $rootScope, ExerciseSurveyService, Backand, $state, WorkoutsExercisesModel, ExerciseModel, CompletedModel, formData, exerciseData) {
   var ec = this;
   var userDetail;
   
@@ -298,11 +314,13 @@ angular.module('starter.controllers', ['ionic'])
   var workout_id = $scope.workout.id;
   var exercise_ids = $scope.workout.exercises;
   var exercise_names = [];
+  console.log("the length",exercise_ids.length)
   
   
   ec.links = [];
   $scope.exercise = {};
   $scope.exerciseInfo = exerciseData.getExercise();
+  console.log('details', $scope.exerciseInfo.url);
   var exercise_id = $scope.exerciseInfo.id;
   
   $scope.numsets = $scope.exerciseInfo.sets;
@@ -313,8 +331,16 @@ angular.module('starter.controllers', ['ionic'])
   
   $scope.submitExercise = function(exercise) {
     exerciseData.updateExercise(exercise);
-    console.log("Retrieving form from service EC", JSON.stringify(exerciseData.getExercise()));
-    $state.go('tab.exercisedetails');
+    console.log("Retrieving form from service EC");
+    if (typeof $rootScope.surveyID == 'undefined'){
+        $ionicPopup.alert({
+          title: "Incomplete Survey",
+          template: "Please complete the presurvey before submiting weights."
+        });
+      }
+    else{
+      $state.go('tab.exercisedetails'); 
+    }
     
   };
   
@@ -361,23 +387,47 @@ angular.module('starter.controllers', ['ionic'])
         ec.exercises = exercise_names;
       });
   };
-
+  
+   function postSurvey(){
+    console.log("post survey fun");
+    ExerciseSurveyService.get($rootScope.surveyID).then(function (result){
+      console.log("postSurvey", $scope.workout.exercises.split(',').length);
+      if (result.data.totalRows < $scope.workout.exercises.split(',').length){
+        $ionicPopup.alert({
+          title: 'Unfinished Exercises',
+          template: "Please complete all exercises and submit before doing the post-survey."
+        });
+      }
+      
+      else{
+        $state.go('tab.postsurvey'); 
+      }
+    }, function(error) {
+      console.log("postSurvey error", JSON.stringify(error));
+    });
+  }
+  
   function create(object){
     console.log("create new weights", JSON.stringify(object));
-    var exercise_survey = {};
-    exercise_survey.exercise = exercise_id;
-    exercise_survey.completed_survey = parseInt($rootScope.surveyID);
-    console.log("exercise_survey", JSON.stringify(exercise_survey));
-    exercise_survey.weights = object.weight.toString();
-    ExerciseSurveyService.update(exercise_survey);
-    $ionicHistory.goBack();
+      if (object.weight.length < $scope.exerciseInfo.sets){
+        $ionicPopup.alert({
+          title: 'Missing Weights',
+          template: 'Please fill in a weight for each set'
+        });
+      }
+      else {
+        var exercise_survey = {};
+        exercise_survey.exercise = exercise_id;
+        exercise_survey.completed_survey = parseInt($rootScope.surveyID);
+        exercise_survey.weights = object.weight.toString();
+        ExerciseSurveyService.update(exercise_survey);
+        $ionicHistory.goBack(); 
+    }
   }
   
   function initCreateForm() {
     $scope.getUserDetails();
-    console.log("WORKOUT " + workout_id);
-    console.log("EXERCISE " + exercise_id);
-    console.log("USER " + userDetail);
+    console.log("WORKOUT " + workout_id, "EXERCISE " + exercise_id, "USER " + userDetail);
     ec.newObject = {workout: workout_id, user: userDetail, exercise: exercise_id, weight: []}; 
   }
   
@@ -411,6 +461,7 @@ angular.module('starter.controllers', ['ionic'])
   ec.cancelEditing = cancelEditing;
   ec.cancelCreate = cancelCreate;
   ec.create = create;
+  ec.postSurvey = postSurvey;
   $rootScope.$on("authorized", function() {
     getAll();
   });
@@ -424,7 +475,7 @@ angular.module('starter.controllers', ['ionic'])
 
 })
 
-.controller('WorkoutCtrl', function($scope, $rootScope, Backand, $state, UsersSportsModel, SportsWorkoutsModel, WorkoutModel, WorkoutsExercisesModel, SetsModel, formData) {
+.controller('WorkoutCtrl', function($scope, $rootScope, Backand, $state, CompletedModel, UsersSportsModel, SportsWorkoutsModel, WorkoutModel, WorkoutsExercisesModel, SetsModel, formData) {
   var wo = this;
   var userDetail;
   var sportDetail = [];
@@ -441,7 +492,7 @@ angular.module('starter.controllers', ['ionic'])
   
   $scope.submitForm = function(workout) {
     formData.updateForm(workout);
-    console.log("Retrieving form from service", JSON.stringify(formData.getForm()));
+    console.log("Retrieving form from Workout service");
     $state.go('tab.workoutdetails');
     
   };
@@ -527,8 +578,6 @@ angular.module('starter.controllers', ['ionic'])
           wo.workouts = workout_names;
         });
   };
-
-
 
   function getAll(){
     WorkoutModel.all()

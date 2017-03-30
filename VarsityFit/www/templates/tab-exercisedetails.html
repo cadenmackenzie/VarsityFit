@@ -35,12 +35,14 @@
                         <label class="item item-input item-stacked-label" ng-repeat="weight in getNumber(numsets) track by $index">
                             <input type="number" class="form-control"
                                    ng-model="ec.newObject.weight[$index]"
-                                   placeholder="Enter Weight for Set {{ $index + 1 }}" >
+                                   placeholder="Enter Weight for Set {{ $index + 1 }}" 
+                                   >
                         </label>
                         
                     <br></br>
                     <button class="button button-block button-dark" type="submit">Submit</button>
                 </form>
+              <a class = 'item' ng-model = 'exerciseInfo' href = '{{exerciseInfo.url}}'>Video Link</a>
             </div>
 
 
