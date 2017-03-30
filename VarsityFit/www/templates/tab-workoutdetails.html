@@ -30,7 +30,7 @@
             <div ng-if="!ec.isCreating && !ec.isEditing">
               <!--<form ng-submit="submitForm(sport)">-->
                 <ion-list>
-                  <ion-item ng-repeat="exercise in ec.exercises | orderBy: 'name'"  ng-model="exercise.name" ng-click="submitExercise(exercise)">
+                  <ion-item ng-if="ec.finishedExercises(exercise)" ng-repeat="exercise in ec.exercises | orderBy: 'name' "  ng-model="exercise.name" ng-click="submitExercise(exercise)">
                     {{ exercise.name }}
                   </ionitem> 
                 </ion-list>

@@ -193,7 +193,7 @@ angular.module('starter.controllers', ['ionic'])
   
 })
 
-.controller('PostSurveyCtrl', function($rootScope, $scope, Backand, $state, PostSurveysModel, CompletedModel) {
+.controller('PostSurveyCtrl', function($rootScope, $scope, Backand, $state, $ionicPopup, PostSurveysModel, CompletedModel) {
   var vm = this;
   var userDetail;
   var data2 = [];
@@ -223,37 +223,38 @@ angular.module('starter.controllers', ['ionic'])
             if (userDetail == current.user) {
               data2.push(vm.allData[object]);
             }
-            
         }
         vm.data = data2;
-
       });
   }
   
-  
   function create(object){
-    var completed_object = JSON.parse(JSON.stringify(object));
-    
-    $ionicPopup.alert({
+    var completed_object = object;
+    console.log("wut", JSON.stringify(completed_object), JSON.stringify(object));
+    if (completed_object.bodyWeightOut == null || completed_object.practiceDifficulty == "" || completed_object.fatigueLevelPost == "" || completed_object.date == null){
+       $ionicPopup.alert({
           title: "Incomplete Survey",
           template: "Please fill in all parts of the survey before submitting."
     });
-        
-    completed_object.bodyWeightIn = $rootScope.presurvey.bodyWeightIn;
-    completed_object.hoursSleep = $rootScope.presurvey.hoursSleep;
-    completed_object.sleepQuality = $rootScope.presurvey.sleepQuality;
-    completed_object.stressLevel = $rootScope.presurvey.stressLevel;
-    completed_object.muscleSoreness = $rootScope.presurvey.muscleSoreness;
-    completed_object.fatigueLevelPre = $rootScope.presurvey.fatigueLevelPre;
-    completed_object.id = $rootScope.surveyID;
-    CompletedModel.update(completed_object);
-    PostSurveysModel.create(object)
-      .then(function (result) {
-        cancelCreate();
-        getAll();
-        
+    }
+    else{
+      completed_object.bodyWeightIn = $rootScope.presurvey.bodyWeightIn;
+      completed_object.hoursSleep = $rootScope.presurvey.hoursSleep;
+      completed_object.sleepQuality = $rootScope.presurvey.sleepQuality;
+      completed_object.stressLevel = $rootScope.presurvey.stressLevel;
+      completed_object.muscleSoreness = $rootScope.presurvey.muscleSoreness;
+      completed_object.fatigueLevelPre = $rootScope.presurvey.fatigueLevelPre;
+      completed_object.id = $rootScope.surveyID;
+      CompletedModel.update(completed_object).then(function(result){
         $state.go("tab.workoutdetails");
-      });
+    });
+    }
+   
+    // PostSurveysModel.create(object)
+    //   .then(function (result) {
+    //     cancelCreate();
+    //     getAll();
+    // });
   }
   function initCreateForm() {
     $scope.getUserDetails();
@@ -309,6 +310,12 @@ angular.module('starter.controllers', ['ionic'])
     $scope.searchText.val='';
   } 
   
+  if (!angular.isDefined($rootScope.finishedExercises)){
+    $rootScope.finishedExercises = {};
+  }
+  ec.finishedExercises = {} ;
+  //ec.exercises = [];
+  
   
   $scope.workout = formData.getForm();
   var workout_id = $scope.workout.id;
@@ -320,7 +327,6 @@ angular.module('starter.controllers', ['ionic'])
   ec.links = [];
   $scope.exercise = {};
   $scope.exerciseInfo = exerciseData.getExercise();
-  console.log('details', $scope.exerciseInfo.url);
   var exercise_id = $scope.exerciseInfo.id;
   
   $scope.numsets = $scope.exerciseInfo.sets;
@@ -341,7 +347,6 @@ angular.module('starter.controllers', ['ionic'])
     else{
       $state.go('tab.exercisedetails'); 
     }
-    
   };
   
   $scope.getUserDetails = function() {
@@ -372,7 +377,7 @@ angular.module('starter.controllers', ['ionic'])
   }
 
    $scope.getExerciseName = function() {
-     ExerciseModel.all()
+     return ExerciseModel.all()
        .then(function (result) {
          ec.exercise_names = result.data.data;
          for(var object in ec.exercise_names) {
@@ -389,7 +394,7 @@ angular.module('starter.controllers', ['ionic'])
   };
   
    function postSurvey(){
-    console.log("post survey fun");
+    console.log("post survey fun", JSON.stringify($rootScope.surveyID));
     ExerciseSurveyService.get($rootScope.surveyID).then(function (result){
       console.log("postSurvey", $scope.workout.exercises.split(',').length);
       if (result.data.totalRows < $scope.workout.exercises.split(',').length){
@@ -407,21 +412,50 @@ angular.module('starter.controllers', ['ionic'])
     });
   }
   
+  function finishedExercises(exercise){
+    if ($rootScope.finishedExercises[exercise.id] == 0){
+      return false;
+    }
+    else{
+      return true;
+    }
+  }
+  
   function create(object){
     console.log("create new weights", JSON.stringify(object));
-      if (object.weight.length < $scope.exerciseInfo.sets){
+    if (object.weight.length < $scope.exerciseInfo.sets){
         $ionicPopup.alert({
           title: 'Missing Weights',
           template: 'Please fill in a weight for each set'
         });
       }
-      else {
-        var exercise_survey = {};
-        exercise_survey.exercise = exercise_id;
-        exercise_survey.completed_survey = parseInt($rootScope.surveyID);
-        exercise_survey.weights = object.weight.toString();
-        ExerciseSurveyService.update(exercise_survey);
-        $ionicHistory.goBack(); 
+    
+    else if (filledWeights(object.weight) || false){
+       $ionicPopup.alert({
+            title: 'Missing Weights',
+            template: 'Please make sure all the weights have been filled in. '
+          });
+    }
+    
+    else {
+      var exercise_survey = {};
+      exercise_survey.exercise = exercise_id;
+      exercise_survey.completed_survey = parseInt($rootScope.surveyID);
+      exercise_survey.weights = object.weight.toString();
+      ExerciseSurveyService.update(exercise_survey);
+      $rootScope.finishedExercises[exercise_id] = 0;
+      console.log('ec.finishedExercises', JSON.stringify(ec.finishedExercises), JSON.stringify($rootScope.finishedExercises));
+      //$rootScope.exerciseSurveys.push(exercise_id);
+      $ionicHistory.goBack(); 
+    }
+  }
+  
+  function filledWeights(weights){
+    var i;
+    for (i = 0; i < weights.length; i++){
+      if(weights[i] == null){
+        return true;
+      }
     }
   }
   
@@ -455,13 +489,13 @@ angular.module('starter.controllers', ['ionic'])
   ec.isEditing = false;
   ec.isCreating = false;
   ec.getAll = getAll;
-  // ec.create = create;
   ec.setEdited = setEdited;
   ec.isCurrent = isCurrent;
   ec.cancelEditing = cancelEditing;
   ec.cancelCreate = cancelCreate;
   ec.create = create;
   ec.postSurvey = postSurvey;
+  ec.finishedExercises = finishedExercises;
   $rootScope.$on("authorized", function() {
     getAll();
   });
@@ -469,8 +503,16 @@ angular.module('starter.controllers', ['ionic'])
   initCreateForm();
   getAll();
   // $scope.getExerciseDetails();
-  $scope.getExerciseName();
+  var namePromise = $scope.getExerciseName();
+  namePromise.then(function (result){
+    if ($rootScope.finishedExercises.length < 1){
+      ec.exercises.forEach(function(exercise){
+      $rootScope.finishedExercises[exercise.id] = 1;
+      });
+    }
     
+  });
+  console.log("finished", JSON.stringify($rootScope.finishedExercises));
 
 
 })
