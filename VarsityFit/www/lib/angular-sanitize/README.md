@@ -17,7 +17,7 @@ npm install angular-sanitize
 Then add `ngSanitize` as a dependency for your app:
 
 ```javascript
-angular.module('myApp', [require('angular-sanitize')]);
+angular.module('VarsityFit', [require('angular-sanitize')]);
 ```
 
 ### bower
@@ -35,7 +35,7 @@ Add a `<script>` to your `index.html`:
 Then add `ngSanitize` as a dependency for your app:
 
 ```javascript
-angular.module('myApp', ['ngSanitize']);
+angular.module('VarsityFit', ['ngSanitize']);
 ```
 
 ## Documentation

@@ -47,12 +47,12 @@ When you're done, your setup should look similar to the following:
 >
 ```html
 <!doctype html>
-<html ng-app="myApp">
+<html ng-app="VarsityFit">
 <head>
     <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.1.5/angular.min.js"></script>
     <script src="js/angular-ui-router.min.js"></script>
     <script>
-        var myApp = angular.module('myApp', ['ui.router']);
+        var VarsityFit = angular.module('VarsityFit', ['ui.router']);
         // For Component users, it should look like this:
         // var myApp = angular.module('myApp', [require('angular-ui-router')]);
     </script>
